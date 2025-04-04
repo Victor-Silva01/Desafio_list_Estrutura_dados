@@ -1,86 +1,115 @@
 class PersonalArray:
-    SIZE = 5
-    insertPosition = 0
-    elements = [None] * SIZE
-    
-    # Função que serve para definir se o array está vazio ou não
-    def isEmpty(self):
-        return self.size() == 0
-    
-    # Função que retorna o número de elementos armazenados no array   
+    def __init__(self, initial_size=5):
+        self.SIZE = initial_size
+        self.insert_position = 0
+        self.elements = [None] * self.SIZE
+
+    def is_empty(self):
+        return self.insert_position == 0
+
+    def is_full(self):
+        return self.insert_position == len(self.elements)
+
     def size(self):
-        return self.insertPosition
-        
-    # Função que define se precisamos de mais memória
-    def isMemoryFull(self):
-        return self.insertPosition == len(self.elements)
-    
-    # Função para inserir na lista
-    def append(self, newElement):
-        if self.isMemoryFull():
-            self.updateMemory()
-        self.elements[self.insertPosition] = newElement
-        self.insertPosition += 1
-    
-    def updateMemory(self):
-        newArray = [None] * (self.size() + self.SIZE)
-        for position in range(self.insertPosition):
-            newArray[position] = self.elements[position]
-        self.elements = newArray
-    
-    # Função para limpar as posições
+        return self.insert_position
+
+    def append(self, new_element):
+        if self.is_full():
+            self.expand_memory()
+        self.elements[self.insert_position] = new_element
+        self.insert_position += 1
+
+    def expand_memory(self):
+        new_capacity = len(self.elements) + self.SIZE
+        new_elements = [None] * new_capacity
+        for i in range(self.insert_position):
+            new_elements[i] = self.elements[i]
+        self.elements = new_elements
+
     def clear(self):
         self.elements = [None] * self.SIZE
-        self.insertPosition = 0
-    
-    # Função para remover o último elemento
-    def remove(self):
-        if self.insertPosition > 0:
-            self.elements[self.insertPosition - 1] = None
-            self.insertPosition -= 1
-    
-    # Função para remover um elemento da lista com base em uma posição
-    def removePosition(self, position):
-        if position < 0 or position >= self.insertPosition:
-            print("Posição inválida!")
-            return
-        
-        # Desloca os elementos à direita para preencher o espaço removido
-        for i in range(position, self.insertPosition - 1):
+        self.insert_position = 0
+
+    def remove_last(self):
+        if not self.is_empty():
+            self.insert_position -= 1
+            removed = self.elements[self.insert_position]
+            self.elements[self.insert_position] = None
+            return removed
+        return None
+
+    def remove_at(self, position):
+        if position < 0 or position >= self.insert_position:
+            print("⚠️ Posição inválida.")
+            return None
+        removed = self.elements[position]
+        for i in range(position, self.insert_position - 1):
             self.elements[i] = self.elements[i + 1]
+        self.insert_position -= 1
+        self.elements[self.insert_position] = None
+        return removed
 
-        # Define o último elemento como None e reduz o tamanho
-        self.elements[self.insertPosition - 1] = None
-        self.insertPosition -= 1
+    def insert_at(self, position, new_element):
+        if position < 0 or position > self.insert_position:
+            print("⚠️ Posição inválida.")
+            return
+        if self.is_full():
+            self.expand_memory()
+        for i in range(self.insert_position, position, -1):
+            self.elements[i] = self.elements[i - 1]
+        self.elements[position] = new_element
+        self.insert_position += 1
+
+    def get(self, position):
+        if position < 0 or position >= self.insert_position:
+            print("⚠️ Posição inválida.")
+            return None
+        return self.elements[position]
+
+    def __str__(self):
+        return str([self.elements[i] for i in range(self.insert_position)])
 
 
-# Testando o código com inserções adicionais
-array = PersonalArray()
+class PersonalStack:
+    def __init__(self):
+        self.stack = PersonalArray()
 
-# Adicionando mais elementos ao array
-array.append("fusca")
-array.append("kombi")
-array.append("kwid")
-array.append("Ferrari")
-array.append("Hilux")
-array.append("fusca")
-array.append("kombi")
-array.append("kwid")
-array.append("Ferrari")
-array.append("Hilux")
-array.append("fusca")
-array.append("kombi")
-array.append("kwid")
-array.append("Ferrari")
-array.append("Hilux")
+    def push(self, element):
+        self.stack.insert_at(0, element)
+        print(f"📥 Adicionado: {element}")
+        self.show()  # 👈 Mostra a pilha logo após adicionar
 
-# Exibindo o estado do array antes da remoção
-print("Antes de remover a posição 3:")
-print(array.elements)
+    def pop(self):
+        removed = self.stack.remove_at(0)
+        if removed is not None:
+            print(f"✅ Removido: {removed}")
+        else:
+            print("⚠️ A pilha já está vazia.")
 
-# Teste de remoção de um elemento por posição
-array.removePosition(3)  # Removendo o elemento na posição 3 (no caso "Ferrari")
+    def show(self):
+        if self.stack.is_empty():
+            print("📭 Pilha vazia!")
+        else:
+            print("📌 Tags atuais:", self.stack)
 
-# Exibindo o estado do array após a remoção
-print("Após remoção da posição 3:")
-print(array.elements)
+
+# Interface CLI
+if __name__ == "__main__":
+    stack = PersonalStack()
+    print("\n💬 Digite uma palavra para adicionar à lista de tags.")
+    print("Comandos disponíveis:")
+    print("  \\pop   → Remove a última tag adicionada.")
+    print("  \\show  → Mostra todas as tags.")
+    print("  \\exit  → Encerra o programa.\n")
+
+    while True:
+        user_input = input("👉 ").strip()
+        if user_input == "\\show":
+            stack.show()
+        elif user_input == "\\pop":
+            stack.pop()
+        elif user_input == "\\exit":
+            print("👋 Encerrando o programa.")
+            break
+        else:
+            stack.push(user_input)
